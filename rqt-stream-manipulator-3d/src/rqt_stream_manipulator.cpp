@@ -326,7 +326,7 @@ namespace rqt_sm3d
             ui_.input_comboBox->setCurrentIndex(ui_.input_comboBox->count() -1);
             //Color this entry Red so user knows this topic was not found
             ui_.input_comboBox->setItemData(ui_.input_comboBox->count()-1,
-                    Qt::red, Qt::TextColorRole);
+                    QColor(Qt::red), Qt::TextColorRole);
         }
         //Restore connection
         connect(ui_.input_comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(onChangeTopic(int)));

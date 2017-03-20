@@ -15,13 +15,19 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 ## System dependencies are found with CMake's conventions
-find_package(Qt4 REQUIRED COMPONENTS QtCore QtGui)
+
+if("${qt_gui_cpp_USE_QT_MAJOR_VERSION} " STREQUAL "5 ")
+  MESSAGE("[rqt_stream_manipulator_3d] is using QT5")
+  find_package(Qt5Widgets REQUIRED)
+else()
+    MESSAGE("[rqt_stream_manipulator_3d] is using QT4")
+  find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
+  include(${QT_USE_FILE})
+endif()
 
 find_package(Boost REQUIRED)
 
 find_package(TinyXML REQUIRED)
-
-include (${QT_USE_FILE})
 
 set(rqt_sm3d_INCLUDE_DIRECTORIES
     include
@@ -43,9 +49,15 @@ set(rqt_sm3d_UI
 set(rqt_sm3d_QRC
     resources/resources.qrc)
 
-qt4_wrap_cpp(rqt_sm3d_MOC ${rqt_sm3d_HDR})
-qt4_wrap_ui(rqt_sm3d_UI_H ${rqt_sm3d_UI})
-qt4_add_resources(rqt_sm3d_QRC_H ${rqt_sm3d_QRC})
+if("${qt_gui_cpp_USE_QT_MAJOR_VERSION} " STREQUAL "5 ")
+    qt5_wrap_cpp(rqt_sm3d_MOC ${rqt_sm3d_HDR})
+    qt5_wrap_ui(rqt_sm3d_UI_H ${rqt_sm3d_UI})
+    qt5_add_resources(rqt_sm3d_QRC_H ${rqt_sm3d_QRC})
+else()
+    qt4_wrap_cpp(rqt_sm3d_MOC ${rqt_sm3d_HDR})
+    qt4_wrap_ui(rqt_sm3d_UI_H ${rqt_sm3d_UI})
+    qt4_add_resources(rqt_sm3d_QRC_H ${rqt_sm3d_QRC})
+endif()
 
 # Define the plugin library
 set(PLUGIN_LIBRARY rqt_sm3d_plugins)
@@ -84,9 +96,13 @@ set(PLUGIN_LIBRARY_UI
     )
 
 #qt wraps for PLUGIN_LIBRARY
-qt4_wrap_cpp(PLUGIN_LIBRARY_MOC ${PLUGIN_LIBRARY_HDR})
-qt4_wrap_ui(PLUGIN_LIBRARY_UI_H ${PLUGIN_LIBRARY_UI})
-
+if("${qt_gui_cpp_USE_QT_MAJOR_VERSION} " STREQUAL "5 ")
+    qt5_wrap_cpp(PLUGIN_LIBRARY_MOC ${PLUGIN_LIBRARY_HDR})
+    qt5_wrap_ui(PLUGIN_LIBRARY_UI_H ${PLUGIN_LIBRARY_UI})
+else()
+    qt4_wrap_cpp(PLUGIN_LIBRARY_MOC ${PLUGIN_LIBRARY_HDR})
+    qt4_wrap_ui(PLUGIN_LIBRARY_UI_H ${PLUGIN_LIBRARY_UI})
+endif()
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
@@ -128,22 +144,43 @@ include_directories(
 add_library(${PROJECT_NAME}
     ${rqt_sm3d_SRC} ${rqt_sm3d_MOC} ${rqt_sm3d_UI_H} ${rqt_sm3d_QRC_H}
 )
-target_link_libraries(${PROJECT_NAME}
-    ${catkin_LIBRARIES}
-    ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY}
-    ${TinyXML_LIBRARIES}
-    ${Boost_LIBRARIES}
-)
 
-add_library(${PLUGIN_LIBRARY}
-    ${PLUGIN_LIBRARY_SRC} ${PLUGIN_LIBRARY_MOC} ${PLUGIN_LIBRARY_UI_H}
-    ${rqt_sm3d_QRC_H}
+if("${qt_gui_cpp_USE_QT_MAJOR_VERSION} " STREQUAL "5 ")
+    target_link_libraries(${PROJECT_NAME}
+        ${catkin_LIBRARIES}
+        Qt5::Widgets
+        ${TinyXML_LIBRARIES}
+        ${Boost_LIBRARIES})
+else()
+    target_link_libraries(${PROJECT_NAME}
+        ${catkin_LIBRARIES}
+        ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY}
+        ${TinyXML_LIBRARIES}
+        ${Boost_LIBRARIES})
+
+endif()
+
+if("${qt_gui_cpp_USE_QT_MAJOR_VERSION} " STREQUAL "5 ")
+    add_library(${PLUGIN_LIBRARY}
+        ${PLUGIN_LIBRARY_SRC} ${PLUGIN_LIBRARY_MOC} ${PLUGIN_LIBRARY_UI_H}
+        ${rqt_sm3d_QRC_H}
+        )
+    target_link_libraries(${PLUGIN_LIBRARY}
+        ${catkin_LIBRARIES}
+        Qt5::Widgets
+        ${Boost_LIBRARIES}
     )
-target_link_libraries(${PLUGIN_LIBRARY}
-    ${catkin_LIBRARIES}
-    ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY}
-    ${Boost_LIBRARIES}
-)
+else()
+    add_library(${PLUGIN_LIBRARY}
+        ${PLUGIN_LIBRARY_SRC} ${PLUGIN_LIBRARY_MOC} ${PLUGIN_LIBRARY_UI_H}
+        ${rqt_sm3d_QRC_H}
+        )
+    target_link_libraries(${PLUGIN_LIBRARY}
+        ${catkin_LIBRARIES}
+        ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY}
+        ${Boost_LIBRARIES}
+    )
+endif()
 
 #############
 ## Install ##
